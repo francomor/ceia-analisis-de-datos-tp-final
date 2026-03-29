@@ -4,7 +4,7 @@ Análisis exploratorio del dataset de crímenes de Chicago 2025, realizado como 
 
 ## Dataset
 
-- **Fuente**: Chicago Data Portal - Crimes 2025
+- **Fuente**: [Chicago Data Portal - Crimes 2025](https://data.cityofchicago.org/Public-Safety/Crimes-2025/t7ek-mgzi/about_data)
 - **Registros**: 236,686
 - **Features**: 22 columnas (ID, fecha, tipo de crimen, ubicación, coordenadas, arresto, etc.)
 
