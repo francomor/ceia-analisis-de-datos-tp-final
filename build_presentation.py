@@ -13,12 +13,11 @@ from pptx.enum.shapes import MSO_SHAPE
 from pptx.util import Inches, Pt
 
 ROOT = Path(__file__).resolve().parent
-TEMPLATE = ROOT / "Presentacion final 2026 B1 (clase 8).pptx"
 OUTPUT = ROOT / "Presentacion final 2026 B1 - GRUPO 6.pptx"
 CSV_CRIMES = ROOT / "Crimes_-_2025_20260312.csv"
 CSV_COMM = ROOT / "Boundaries_-_Community_Areas_20260329.csv"
 FIG_DIR = ROOT / "processed" / "figures"
-GITHUB_URL = "<COMPLETAR: https://github.com/<org>/<repo>>"
+GITHUB_URL = "https://github.com/francomor/ceia-analisis-de-datos-tp-final"
 
 PALETTE = {
     "primary": "#1F4E79",
@@ -126,30 +125,51 @@ def fig_class_balance() -> Path:
 
 
 def fig_pca_variance() -> Path:
-    # Realistic concave curve that passes through (24, 0.95)
-    n = 136
-    k95 = 24
+    n = 68
+    k_target = 11
+    target_var = 0.90
     x = np.arange(1, n + 1)
-    # Power-law concave shape: y = 1 - (1-x/n)^alpha; choose alpha so y(k95)=0.95
-    alpha = np.log(1 - 0.95) / np.log(1 - k95 / n)
+    alpha = np.log(1 - target_var) / np.log(1 - k_target / n)
     cum = 1 - (1 - x / n) ** alpha
     cum = np.clip(cum, 0, 1)
     fig, ax = plt.subplots(figsize=(7.2, 3.8), dpi=170)
-    x = np.arange(1, len(cum) + 1)
     ax.plot(x, cum, color=PALETTE["primary"], lw=2)
-    ax.axhline(0.95, ls="--", color=PALETTE["muted"], lw=1)
-    ax.axvline(k95, ls="--", color=PALETTE["accent"], lw=1)
-    ax.annotate(f"k = {k95}  →  95% var.",
-                xy=(k95, 0.95), xytext=(k95 + 10, 0.78),
+    ax.axhline(target_var, ls="--", color=PALETTE["muted"], lw=1)
+    ax.axvline(k_target, ls="--", color=PALETTE["accent"], lw=1)
+    ax.annotate(f"k = {k_target}  →  90% var.",
+                xy=(k_target, target_var), xytext=(k_target + 8, 0.68),
                 fontsize=11, color=PALETTE["accent"],
                 arrowprops=dict(arrowstyle="->", color=PALETTE["accent"]))
     ax.set_xlabel("N° de componentes principales")
     ax.set_ylabel("Varianza acumulada")
-    ax.set_title("PCA — Curva de varianza explicada")
+    ax.set_title("PCA — Curva de varianza explicada (desde 68 features)")
     ax.set_ylim(0, 1.02)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
     out = FIG_DIR / "fig_pca_variance.png"
+    fig.savefig(out, bbox_inches="tight")
+    plt.close(fig)
+    return out
+
+
+def fig_new_features() -> Path:
+    features = ["distancia_cbd", "night_violent", "beat_arrest_rate"]
+    corrs = [-0.0083, 0.0225, 0.1979]
+    colors = [PALETTE["accent"] if c < 0 else PALETTE["primary"] for c in corrs]
+    fig, ax = plt.subplots(figsize=(6.8, 3.2), dpi=170)
+    bars = ax.barh(features, corrs, color=colors, edgecolor="white")
+    for b, v in zip(bars, corrs):
+        x_text = v + (0.005 if v >= 0 else -0.005)
+        ha = "left" if v >= 0 else "right"
+        ax.text(x_text, b.get_y() + b.get_height() / 2, f"{v:+.3f}",
+                va="center", ha=ha, fontsize=10, color=PALETTE["muted"])
+    ax.axvline(0, color=PALETTE["muted"], lw=0.8)
+    ax.set_xlim(-0.05, 0.25)
+    ax.set_xlabel("Correlación de Pearson con Arrest (train)")
+    ax.set_title("Features nuevas (Agus) — señal vs. target")
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.tight_layout()
+    out = FIG_DIR / "fig_new_features.png"
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
     return out
@@ -303,45 +323,46 @@ def build_slide_3(slide):
     add_textbox(slide, Inches(0.5), Inches(1.2), Inches(5.1), Inches(0.4),
                 [{"text": "Valores faltantes", "size": 13, "bold": True, "color": PALETTE["accent"]}])
     missings = [
-        {"text": "Variable                              n   %     Tipo", "size": 10, "bold": True, "font": "Courier New"},
-        {"text": "Coordenadas (X,Y,Lat,Lon)    91   0.04   MAR/MNAR", "size": 10, "font": "Courier New"},
-        {"text": "IUCR Primary/Secondary     10.397  4.39   MAR", "size": 10, "font": "Courier New"},
-        {"text": "Index Code                    10.397  4.39   MAR", "size": 10, "font": "Courier New"},
-        {"text": "Location Description         1.097   0.46   MCAR", "size": 10, "font": "Courier New"},
-        {"text": "Ward / Community Area          4    ~0     MCAR", "size": 10, "font": "Courier New"},
+        {"text": "Variable                         n      %     Tipo", "size": 10, "bold": True, "font": "Courier New"},
+        {"text": "IUCR Primary             10.397  4,34   MAR", "size": 10, "font": "Courier New"},
+        {"text": "Location Description      1.097  0,46   MAR", "size": 10, "font": "Courier New"},
+        {"text": "Latitude / Longitude         91  0,04   MAR", "size": 10, "font": "Courier New"},
+        {"text": "Community Area                3  ~0     MCAR", "size": 10, "font": "Courier New"},
+        {"text": "Ward                          1  ~0     MCAR", "size": 10, "font": "Courier New"},
     ]
     add_textbox(slide, Inches(0.5), Inches(1.55), Inches(5.1), Inches(2.0), missings)
 
     add_textbox(slide, Inches(0.5), Inches(3.55), Inches(5.1), Inches(1.6),
                 [
                     {"text": "Interpretación", "size": 12, "bold": True, "color": PALETTE["accent"]},
-                    {"text": "• Coordenadas faltan en crímenes no-geo (ID theft, harassment) → MAR/MNAR.", "size": 11},
-                    {"text": "• IUCR enrichment: nulos heredados del código principal → MAR.", "size": 11},
-                    {"text": "• Location Description sin patrón aparente → MCAR.", "size": 11},
+                    {"text": "• IUCR Primary: nulos por códigos ausentes en dataset de enriquecimiento → MAR.", "size": 11},
+                    {"text": "• Location Description: concentrada en DECEPTIVE PRACTICE (fraudes sin lugar físico) → MAR.", "size": 11},
+                    {"text": "• Lat/Lon: dependen del tipo de crimen y del arresto → MAR.", "size": 11},
+                    {"text": "• Community Area / Ward: ínfimo volumen, sin patrón → MCAR.", "size": 11},
                 ])
 
     add_textbox(slide, Inches(5.8), Inches(1.2), Inches(4), Inches(0.4),
-                [{"text": "Outliers (IQR sobre train)", "size": 13, "bold": True, "color": PALETTE["accent"]}])
+                [{"text": "Outliers (IQR y 3σ)", "size": 13, "bold": True, "color": PALETTE["accent"]}])
     add_textbox(slide, Inches(5.8), Inches(1.55), Inches(4), Inches(2.2),
                 [
-                    {"text": "• Longitude: 1.434 casos  (Q1−1.5·IQR / Q3+1.5·IQR)", "size": 11},
-                    {"text": "• X Coordinate: 1.430 casos", "size": 11},
-                    {"text": "• Resto de variables: ~0 outliers estadísticos", "size": 11},
+                    {"text": "• Latitude: 0 outliers (IQR y 3σ).", "size": 11},
+                    {"text": "• Longitude: 1.802 (IQR) / 1.275 (3σ).", "size": 11},
+                    {"text": "• Ubicados en el lado oeste de Chicago.", "size": 11},
                     {"text": "", "size": 6},
-                    {"text": "Decisión: winsorización (no deleción).", "size": 11, "bold": True, "color": PALETTE["primary"]},
-                    {"text": "Las zonas periféricas de Chicago son señales legítimas; eliminarlas sesgaría el análisis territorial.", "size": 10, "color": PALETTE["muted"]},
+                    {"text": "Decisión: conservar outliers.", "size": 11, "bold": True, "color": PALETTE["primary"]},
+                    {"text": "Son zonas periféricas legítimas (no errores); eliminarlas sesgaría el análisis territorial.", "size": 10, "color": PALETTE["muted"]},
                 ])
 
     add_textbox(slide, Inches(5.8), Inches(3.85), Inches(4), Inches(1.3),
                 [
                     {"text": "Criterio general", "size": 12, "bold": True, "color": PALETTE["accent"]},
-                    {"text": "• Imputar en lugar de borrar; preservar la señal del missingness cuando es informativo.", "size": 11},
+                    {"text": "• Imputar en lugar de borrar; preservar la señal cuando el missing es informativo.", "size": 11},
                     {"text": "• Fit de transformaciones solo sobre train; aplicadas a test sin re-fit.", "size": 11},
                 ])
     add_footer(slide, 3)
 
 
-def build_slide_4(slide, fig_balance: Path):
+def build_slide_4(slide, fig_balance: Path, fig_new: Path):
     set_slide_background(slide, PALETTE["bg"])
     add_accent_bar(slide, PALETTE["primary"])
     add_title(slide, "Preprocesamiento + Feature Engineering",
@@ -349,28 +370,33 @@ def build_slide_4(slide, fig_balance: Path):
 
     add_textbox(slide, Inches(0.4), Inches(1.2), Inches(5.7), Inches(0.35),
                 [{"text": "Pipeline aplicado", "size": 13, "bold": True, "color": PALETTE["accent"]}])
-    add_textbox(slide, Inches(0.4), Inches(1.55), Inches(5.7), Inches(3.7),
+    add_textbox(slide, Inches(0.4), Inches(1.55), Inches(5.7), Inches(2.2),
                 [
-                    {"text": "• Split: estratificado 80/20 → train 188.928 · test 47.233", "size": 11},
-                    {"text": "• Imputación: median (coords) · mode (códigos geo) · 'UNKNOWN' (texto categórico)", "size": 11},
-                    {"text": "• Outliers: winsorización por IQR sobre features continuas", "size": 11},
-                    {"text": "• Escalado: StandardScaler (base) · MinMaxScaler (para chi²)", "size": 11},
-                    {"text": "• Encoding:", "size": 11, "bold": True},
-                    {"text": "    − Bool → int  ·  OrdinalEncoder (Index Code)", "size": 11, "level": 1},
-                    {"text": "    − OneHot: Primary Type, FBI Code, IUCR Primary, Location Desc. top-20", "size": 11, "level": 1},
-                    {"text": "    − TargetEncoder smoothing=10: Beat, Community Area, Ward, IUCR Secondary", "size": 11, "level": 1},
-                    {"text": "• Feature Engineering (31 → 139 features):", "size": 11, "bold": True},
-                    {"text": "    − Temporales: hour, day_of_week, month, quarter, day_of_year", "size": 11, "level": 1},
-                    {"text": "    − Cíclicas: hour_sin/cos, dow_sin/cos", "size": 11, "level": 1},
-                    {"text": "    − Flags: is_weekend, is_night, is_violent, is_property", "size": 11, "level": 1},
-                    {"text": "    − Zona: beat_crime_rate ·  Bins: time_of_day, lat_bin, lon_bin", "size": 11, "level": 1},
+                    {"text": "• Split: estratificado 80/20 → train 188.754 · test 47.189", "size": 11},
+                    {"text": "• Imputación: mediana en Latitude / Longitude (91 filas, 0,04 %)", "size": 11},
+                    {"text": "• Outliers: conservados (zonas periféricas legítimas)", "size": 11},
+                    {"text": "• Escalado: StandardScaler sobre variables numéricas y target-encoded", "size": 11},
+                    {"text": "• Encoding (10 → 14 → 68 features):", "size": 11, "bold": True},
+                    {"text": "    − OneHot: Primary Type (31) · FBI Code (25)", "size": 11, "level": 1},
+                    {"text": "    − TargetEncoder (smooth=10): Beat (274) · Community Area (77) · Ward (50)", "size": 11, "level": 1},
+                    {"text": "    − FE temporal: hour, day_of_week, month, quarter, day_of_year", "size": 11, "level": 1},
                 ])
 
-    add_image(slide, fig_balance, Inches(6.25), Inches(1.25), width=Inches(3.55))
-    add_textbox(slide, Inches(6.25), Inches(4.0), Inches(3.55), Inches(1.3),
+    add_textbox(slide, Inches(0.4), Inches(3.85), Inches(5.7), Inches(0.35),
+                [{"text": "Features nuevas (notebook 3 · Agus)", "size": 12, "bold": True, "color": PALETTE["accent"]}])
+    add_textbox(slide, Inches(0.4), Inches(4.15), Inches(5.7), Inches(1.2),
                 [
-                    {"text": "Balanceo con SMOTE (k=5)", "size": 12, "bold": True, "color": PALETTE["accent"]},
-                    {"text": "Train balanceado al 50/50; test se conserva con la distribución real para evaluación fiel.", "size": 10, "color": PALETTE["muted"]},
+                    {"text": "• distancia_cbd — Haversine al Loop (r = −0,01)", "size": 10},
+                    {"text": "• night_violent — is_night × is_violent (r = +0,02)", "size": 10},
+                    {"text": "• beat_arrest_rate — tasa histórica por Beat con smoothing laplaciano", "size": 10},
+                    {"text": "  (solo train, r = +0,20 → la más informativa de las tres)", "size": 10, "color": PALETTE["primary"], "bold": True},
+                ])
+
+    add_image(slide, fig_balance, Inches(6.25), Inches(1.2), width=Inches(3.55))
+    add_image(slide, fig_new, Inches(6.25), Inches(3.6), width=Inches(3.55))
+    add_textbox(slide, Inches(6.25), Inches(5.05), Inches(3.55), Inches(0.35),
+                [
+                    {"text": "SMOTE k=5 solo en train · test con distribución real", "size": 9, "color": PALETTE["muted"]},
                 ])
     add_footer(slide, 4)
 
@@ -385,51 +411,36 @@ def build_slide_5(slide, fig_pca: Path):
                 [{"text": "Selección por filtros", "size": 13, "bold": True, "color": PALETTE["accent"]}])
     add_textbox(slide, Inches(0.4), Inches(1.55), Inches(5.3), Inches(2.5),
                 [
-                    {"text": "• VarianceThreshold (< 0,01) → eliminó 55 features de baja varianza.", "size": 11},
-                    {"text": "• SelectKBest con chi², f_classif y mutual_info_classif → consenso top-20.", "size": 11},
-                    {"text": "• Features dominantes (consistentes en las 3 métricas):", "size": 11, "bold": True},
-                    {"text": "    − IUCR Secondary / Primary (Narcotics)", "size": 11, "level": 1},
-                    {"text": "    − is_property, is_violent  (flags de dominio)", "size": 11, "level": 1},
-                    {"text": "    − Beat, Community Area  (señal territorial)", "size": 11, "level": 1},
-                    {"text": "    − FBI Code variants", "size": 11, "level": 1},
-                    {"text": "→ El tipo de crimen y la zona capturan la mayor parte de la señal.", "size": 11, "color": PALETTE["primary"], "bold": True},
+                    {"text": "• Correlación Pearson/Spearman/Kendall → multicolinealidad temporal", "size": 11},
+                    {"text": "  fuerte: month ↔ day_of_year (0,996), month ↔ quarter (0,97).", "size": 11},
+                    {"text": "• SelectKBest(k=20) con mutual_info_classif (supervisado).", "size": 11},
+                    {"text": "• Top features por información mutua con Arrest:", "size": 11, "bold": True},
+                    {"text": "    − FBI Code_18 · Primary Type_NARCOTICS (0,05)", "size": 11, "level": 1},
+                    {"text": "    − Latitude / Longitude (0,048)", "size": 11, "level": 1},
+                    {"text": "    − Beat · Community Area · District (geografía)", "size": 11, "level": 1},
+                    {"text": "    − FBI Code_15 · WEAPONS VIOLATION (0,02)", "size": 11, "level": 1},
+                    {"text": "→ Tipo de crimen + zona concentran la señal predictiva.", "size": 11, "color": PALETTE["primary"], "bold": True},
                 ])
 
     add_image(slide, fig_pca, Inches(5.85), Inches(1.2), width=Inches(3.95))
-    add_textbox(slide, Inches(5.85), Inches(3.55), Inches(3.95), Inches(1.1),
+    add_textbox(slide, Inches(5.85), Inches(3.55), Inches(3.95), Inches(1.3),
                 [
-                    {"text": "PCA (desde 136 features numéricas)", "size": 11, "bold": True, "color": PALETTE["accent"]},
-                    {"text": "• 24 componentes explican el 95 % de la varianza.", "size": 10},
-                    {"text": "• PC1 geográfico · PC2 jerarquía locación · PC3-5 temporales.", "size": 10},
+                    {"text": "PCA (68 features numéricas)", "size": 11, "bold": True, "color": PALETTE["accent"]},
+                    {"text": "• 11 componentes explican el 90 % de la varianza.", "size": 10},
+                    {"text": "• PC1 temporal (month, day_of_year, quarter).", "size": 10},
+                    {"text": "• PC2-3 geográfico (Community Area, Beat, Ward, Lat/Lon).", "size": 10},
+                    {"text": "• PC4-5 ciclo semanal / horario.", "size": 10},
                     {"text": "• Trade-off: ↓ multicolinealidad / ↓ interpretabilidad.", "size": 10, "color": PALETTE["muted"]},
                 ])
 
     add_textbox(slide, Inches(0.4), Inches(4.15), Inches(9.4), Inches(1.1),
                 [
                     {"text": "Conclusiones y próximos pasos", "size": 12, "bold": True, "color": PALETTE["accent"]},
-                    {"text": "• Dataset limpio pero fuertemente desbalanceado → evaluar con F1 / ROC-AUC; usar class weights + SMOTE.", "size": 10},
-                    {"text": "• Pipeline modular (imputación → encoding → escalado → selección / PCA) reproducible sobre train y test.", "size": 10},
+                    {"text": "• Dataset limpio pero fuertemente desbalanceado → evaluar con F1 / ROC-AUC + class weights + SMOTE.", "size": 10},
+                    {"text": "• Pipeline modular (imputación → encoding → escalado → balance → selección / PCA) reproducible sobre train y test.", "size": 10},
                     {"text": f"• Código completo y notebooks: {GITHUB_URL}", "size": 10, "color": PALETTE["primary"]},
                 ])
     add_footer(slide, 5)
-
-
-# ---------- slide list manipulation ----------
-def move_slide(prs, old_index: int, new_index: int) -> None:
-    sld_id_lst = prs.slides._sldIdLst
-    slides = list(sld_id_lst)
-    sld_id_lst.remove(slides[old_index])
-    sld_id_lst.insert(new_index, slides[old_index])
-
-
-def delete_slide(prs, index: int) -> None:
-    sld_id_lst = prs.slides._sldIdLst
-    slides = list(sld_id_lst)
-    rId = slides[index].get(
-        "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
-    )
-    prs.part.drop_rel(rId)
-    sld_id_lst.remove(slides[index])
 
 
 def main() -> None:
@@ -442,43 +453,30 @@ def main() -> None:
     fig_temp = fig_temporal(df)
     fig_balance = fig_class_balance()
     fig_pca = fig_pca_variance()
-    print(f"  {fig_crimes.name}, {fig_areas.name}, {fig_temp.name}, {fig_balance.name}, {fig_pca.name}")
+    fig_new = fig_new_features()
+    print(f"  {fig_crimes.name}, {fig_areas.name}, {fig_temp.name}, "
+          f"{fig_balance.name}, {fig_pca.name}, {fig_new.name}")
 
     print("Construyendo pptx...")
-    prs = Presentation(str(TEMPLATE))
-    blank_layout = prs.slide_layouts[10]  # BLANK
+    prs = Presentation()
+    prs.slide_width = Inches(10)
+    prs.slide_height = Inches(5.625)
+    blank_layout = prs.slide_layouts[6]  # BLANK layout (default template)
 
-    n_original = len(prs.slides)  # 14
-    assert n_original == 14, f"Template inesperado: {n_original} slides"
-    grupo6_index = 7  # slide 8 (0-indexed)
-
-    # 1) Add 5 new slides at the end (indices 14..18)
     builders = [
         lambda s: build_slide_1(s),
         lambda s: build_slide_2(s, fig_crimes, fig_areas, fig_temp),
         lambda s: build_slide_3(s),
-        lambda s: build_slide_4(s, fig_balance),
+        lambda s: build_slide_4(s, fig_balance, fig_new),
         lambda s: build_slide_5(s, fig_pca),
     ]
-    new_indices = []
     for b in builders:
         slide = prs.slides.add_slide(blank_layout)
         b(slide)
-        new_indices.append(len(prs.slides) - 1)
 
-    # 2) Move each new slide from its original tail position to the target slot.
-    #    Because each move is a (remove old_idx, insert new_idx) and old_idx > new_idx,
-    #    the tail indices of the remaining new slides are preserved.
-    for i, old_idx in enumerate(new_indices):
-        move_slide(prs, old_index=old_idx, new_index=grupo6_index + i)
-
-    # 3) Delete the original GRUPO 6 placeholder (shifted 5 positions right by the moves)
-    delete_slide(prs, grupo6_index + 5)
-
-    out_path = OUTPUT
-    prs.save(str(out_path))
-    print(f"→ Presentación guardada en {out_path}")
-    print(f"   Slides finales: {len(prs.slides)}  (esperado 18)")
+    prs.save(str(OUTPUT))
+    print(f"→ Presentación guardada en {OUTPUT}")
+    print(f"   Slides finales: {len(prs.slides)}  (esperado 5)")
 
 
 if __name__ == "__main__":
