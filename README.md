@@ -10,17 +10,22 @@ Análisis exploratorio del dataset de crímenes de Chicago 2025, realizado como 
 
 ## Análisis realizado
 
-El notebook `1.analisis_inicial.ipynb` contiene el análisis exploratorio inicial:
+### Notebooks principales
 
-- Inspección general del dataset (tipos de datos, dimensiones, estadísticas descriptivas)
-- Análisis de valores nulos (91 registros sin coordenadas, 1097 sin descripción de ubicación)
-- Distribución de arrestos (84% sin arresto, 16% con arresto)
-- Distribución de crímenes domésticos (81% no doméstico, 19% doméstico)
-- Relación entre arrestos y crímenes domésticos
-- Top 10 tipos de crímenes más frecuentes (THEFT, BATTERY, CRIMINAL DAMAGE lideran)
-- Tipos de crímenes con mayor tasa de arrestos
-- Crimen prevalente por Community Area
-- Distribución temporal de crímenes por mes
+En orden de lectura recomendado:
+
+1. `1.tp_final_eda_fran.ipynb` — Primer EDA del dataset de Chicago Crimes 2025 (inspección general, nulos, distribuciones de arrestos y crímenes domésticos, top de tipos de crimen, análisis por Community Area y distribución temporal).
+2. `2.tp_final_parte2_fran.ipynb` — Segunda parte del TP, continuación del análisis.
+3. `3_tp_final_nuevas_features_Agus.ipynb` — Generación de nuevas features a partir del dataset.
+
+### Material complementario
+
+Aportes individuales de los participantes y recursos del grupo:
+
+- `1.analisis_inicial.ipynb` — análisis inicial previo.
+- `TP parte 2_Aye.ipynb` — trabajo individual de Aye sobre la parte 2.
+- `EDA_individual_Agus.py` — EDA individual de Agus.
+- `Análisis de datos - Trabajo grupal - 1B2026.pdf` — consigna original del TP.
 
 ## Requisitos
 
@@ -35,4 +40,4 @@ uv sync
 
 ## Uso
 
-Abrir y ejecutar el notebook `1.analisis_inicial.ipynb` en Jupyter o un IDE compatible.
+Abrir y ejecutar los notebooks principales en orden (`1.tp_final_eda_fran.ipynb`, `2.tp_final_parte2_fran.ipynb`, `3_tp_final_nuevas_features_Agus.ipynb`) en Jupyter o un IDE compatible.
