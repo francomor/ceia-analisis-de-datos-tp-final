@@ -1,6 +1,6 @@
 # CEIA - Análisis de Datos - Trabajo Práctico Final
 
-Análisis exploratorio del dataset de crímenes de Chicago 2025, realizado como trabajo práctico final para la materia Análisis de Datos de la CEIA.
+Análisis exploratorio y preprocesamiento del dataset de crímenes de Chicago 2025, realizado como trabajo práctico final para la materia Análisis de Datos de la CEIA.
 
 ## Dataset
 
@@ -8,24 +8,25 @@ Análisis exploratorio del dataset de crímenes de Chicago 2025, realizado como 
 - **Registros**: 236,686
 - **Features**: 22 columnas (ID, fecha, tipo de crimen, ubicación, coordenadas, arresto, etc.)
 
-## Análisis realizado
+## Entregables del TP
 
-### Notebooks principales
+Los únicos notebooks que conforman la entrega oficial del grupo son:
 
-En orden de lectura recomendado:
+1. `tp_final_eda.ipynb` — **Parte 1: EDA del dataset de Chicago Crimes 2025.** Exploración y comprensión de los datos (tipos de variables, distribuciones de arrestos y crímenes domésticos, top de tipos de crimen, análisis por Community Area, patrones temporales, correlaciones), detección de valores faltantes con clasificación MCAR/MAR/MNAR, análisis de outliers, visualizaciones geográficas y hallazgos finales.
+2. `tp_final_parte2.ipynb` — **Parte 2: Preprocesamiento, feature engineering y reducción de dimensionalidad.** Split train/test estratificado, tratamiento de valores faltantes, generación de nuevas features (temporales, `distancia_cbd`, `is_violent`, interacciones), codificación de categóricas (OneHotEncoder + TargetEncoder), escalado con `StandardScaler`, balanceo con SMOTE, selección de features por correlación y `mutual_info_classif`, y extracción con PCA.
 
-1. `1.tp_final_eda_fran.ipynb` — Primer EDA del dataset de Chicago Crimes 2025 (inspección general, nulos, distribuciones de arrestos y crímenes domésticos, top de tipos de crimen, análisis por Community Area y distribución temporal).
-2. `2.tp_final_parte2_fran.ipynb` — Segunda parte del TP, continuación del análisis.
-3. `3_tp_final_nuevas_features_Agus.ipynb` — Generación de nuevas features a partir del dataset.
+## Material complementario
 
-### Material complementario
+El resto de los archivos del repositorio **no forma parte de la entrega**: son aportes individuales de los integrantes del grupo y recursos auxiliares que acompañaron el desarrollo de los dos notebooks oficiales.
 
-Aportes individuales de los participantes y recursos del grupo:
-
-- `1.analisis_inicial.ipynb` — análisis inicial previo.
+- `1.analisis_inicial.ipynb` — análisis inicial previo del grupo.
+- `1.tp_final_eda_fran.ipynb` — versión previa del EDA aportada por Franco.
+- `2.tp_final_parte2_fran.ipynb` — versión previa de la parte 2 aportada por Franco.
+- `3_tp_final_nuevas_features_Agus.ipynb` — exploración de nuevas features por Agus.
+- `EDA_individual_Agus.py` — EDA individual de Agus en formato script.
 - `TP parte 2_Aye.ipynb` — trabajo individual de Aye sobre la parte 2.
-- `EDA_individual_Agus.py` — EDA individual de Agus.
 - `Análisis de datos - Trabajo grupal - 1B2026.pdf` — consigna original del TP.
+- Datasets y recursos auxiliares usados en los merges y visualizaciones: `Crimes_-_2025_20260312.csv`, `Boundaries_-_Community_Areas_20260329.csv`, `Chicago_Police_Department_-_Illinois_Uniform_Crime_Reporting_(IUCR)_Codes_20260329.csv`, `Chicago_districts_map.png`.
 
 ## Requisitos
 
@@ -40,4 +41,7 @@ uv sync
 
 ## Uso
 
-Abrir y ejecutar los notebooks principales en orden (`1.tp_final_eda_fran.ipynb`, `2.tp_final_parte2_fran.ipynb`, `3_tp_final_nuevas_features_Agus.ipynb`) en Jupyter o un IDE compatible.
+Abrir y ejecutar los dos notebooks de la entrega en orden en Jupyter o un IDE compatible:
+
+1. `tp_final_eda.ipynb`
+2. `tp_final_parte2.ipynb`
